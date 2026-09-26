@@ -1,83 +1,88 @@
-/* Стили компонента TransactionList */
+/* Стили списка транзакций */
 .list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
 }
 
-/* Заголовок списка (десктоп) */
-.listHeader {
-  display: grid;
-  grid-template-columns: 120px 1fr 140px 120px 100px;
-  gap: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Строка транзакции */
-.row {
-  display: grid;
-  grid-template-columns: 120px 1fr 140px 120px 100px;
-  gap: var(--spacing-md);
+.transaction {
+  display: flex;
   align-items: center;
+  gap: var(--spacing-md);
   padding: var(--spacing-md);
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
-.row:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+.transaction:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Ячейка даты */
-.date {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-/* Ячейка категории с иконкой */
-.category {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  font-weight: 500;
-}
-
-.categoryIcon {
+/* Иконка категории */
+.icon {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
   border-radius: var(--radius-md);
-  background-color: var(--color-primary-light);
-  font-size: var(--font-size-lg);
+  font-size: 24px;
+  flex-shrink: 0;
 }
 
-/* Ячейка комментария */
-.comment {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+.iconIncome {
+  background-color: var(--color-income-light);
+}
+
+.iconExpense {
+  background-color: var(--color-expense-light);
+}
+
+/* Информация о транзакции */
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.category {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.details {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.date {
   white-space: nowrap;
 }
 
-/* Ячейка суммы */
+.comment {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* Сумма транзакции */
 .amount {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  text-align: right;
+  white-space: nowrap;
+  margin-left: auto;
 }
 
 .amountIncome {
@@ -88,29 +93,32 @@
   color: var(--color-expense);
 }
 
-/* Ячейка действий */
+/* Кнопки действий */
 .actions {
   display: flex;
   gap: var(--spacing-xs);
-  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.transaction:hover .actions {
+  opacity: 1;
 }
 
 .actionButton {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
   border-radius: var(--radius-md);
-  background-color: transparent;
   color: var(--color-text-muted);
   font-size: var(--font-size-lg);
   transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .actionButton:hover {
-  background-color: var(--color-bg);
+  background-color: var(--color-surface);
   color: var(--color-text);
 }
 
@@ -119,52 +127,39 @@
   color: var(--color-expense);
 }
 
-/* Адаптивность для планшетов */
-@media (max-width: 900px) {
-  .listHeader {
-    display: none;
-  }
-
-  .row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "category amount"
-      "comment comment"
-      "date actions";
+/* Адаптивность для мобильных устройств */
+@media (max-width: 640px) {
+  .transaction {
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
   }
 
-  .category {
-    grid-area: category;
+  .icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
   }
 
   .amount {
-    grid-area: amount;
-  }
-
-  .comment {
-    grid-area: comment;
-    white-space: normal;
-  }
-
-  .date {
-    grid-area: date;
+    width: 100%;
+    text-align: right;
+    margin-left: 0;
+    padding-top: var(--spacing-xs);
+    border-top: 1px solid var(--color-border);
   }
 
   .actions {
-    grid-area: actions;
-  }
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 480px) {
-  .row {
-    padding: var(--spacing-sm);
+    opacity: 1;
+    width: 100%;
+    justify-content: flex-end;
   }
 
-  .categoryIcon {
-    width: 28px;
-    height: 28px;
-    font-size: var(--font-size-md);
+  .comment {
+    max-width: 150px;
   }
 }

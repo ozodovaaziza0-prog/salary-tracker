@@ -1,46 +1,35 @@
-// Утилиты форматирования даты и валюты
-
 /**
- * Форматирование суммы в рубли с разделителями тысяч
- * @param {number} amount - сумма
- * @returns {string} отформатированная строка, например "1 234 ₽"
+ * Форматирование суммы с разделителями тысяч и символом валюты
+ * @param {number} amount - Сумма
+ * @param {string} currency - Символ валюты (по умолчанию '₽')
+ * @returns {string} Отформатированная строка
  */
-export const formatCurrency = (amount) => {
-  const value = amount ?? 0;
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
+export const formatAmount = (amount, currency = '₽') => {
+  const formatted = new Intl.NumberFormat('ru-RU').format(amount ?? 0);
+  return `${formatted} ${currency}`;
 };
 
 /**
- * Форматирование даты в короткий формат (дд.мм.гггг)
- * @param {string|Date} date - дата в виде строки ISO или объекта Date
- * @returns {string} отформатированная дата, например "23.09.2026"
+ * Форматирование суммы с знаком (+ или -)
+ * @param {number} amount - Сумма
+ * @param {string} type - Тип операции ('income' или 'expense')
+ * @returns {string} Отформатированная строка со знаком
  */
-export const formatDate = (date) => {
-  if (!date) return '—';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+export const formatAmountWithSign = (amount, type) => {
+  const formatted = new Intl.NumberFormat('ru-RU').format(amount ?? 0);
+  const sign = type === 'income' ? '+' : '−';
+  return `${sign}${formatted} ₽`;
 };
 
 /**
- * Форматирование даты в длинный формат (23 сентября 2026)
- * @param {string|Date} date - дата
- * @returns {string} отформатированная дата
+ * Форматирование даты в длинный читаемый формат
+ * @param {string} dateString - Дата в формате ISO или timestamp
+ * @returns {string} Отформатированная дата (например, "15 января 2024")
  */
-export const formatDateLong = (date) => {
-  if (!date) return '—';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ru-RU', {
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -48,59 +37,54 @@ export const formatDateLong = (date) => {
 };
 
 /**
- * Получение названия месяца и года (сентябрь 2026)
- * @param {string|Date} date - дата
- * @returns {string} название месяца и год
+ * Форматирование даты в короткий формат
+ * @param {string} dateString - Дата в формате ISO или timestamp
+ * @returns {string} Отформатированная дата (например, "15.01.2024")
  */
-export const formatMonthYear = (date) => {
-  if (!date) return '—';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ru-RU', {
-    month: 'long',
+export const formatShortDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
   });
 };
 
 /**
- * Получение короткого названия месяца (янв, фев, мар)
- * @param {string|Date} date - дата
- * @returns {string} короткое название месяца
+ * Форматирование месяца для графиков
+ * @param {string} dateString - Дата в формате ISO или timestamp
+ * @returns {string} Отформатированный месяц (например, "Янв 2024")
  */
-export const formatMonthShort = (date) => {
-  if (!date) return '—';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ru-RU', {
+export const formatMonth = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
     month: 'short',
+    year: 'numeric',
   });
 };
 
 /**
- * Преобразование даты в строку формата YYYY-MM-DD (для input type="date")
- * @param {string|Date} date - дата
- * @returns {string} строка в формате YYYY-MM-DD
+ * Получение сегодняшней даты в формате YYYY-MM-DD
+ * @returns {string} Дата в формате ISO (только дата)
  */
-export const toInputDate = (date) => {
-  if (!date) return '';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+export const getTodayISO = () => {
+  return new Date().toISOString().split('T')[0];
 };
 
 /**
- * Получение ключа месяца в формате YYYY-MM (для группировки по месяцам)
- * @param {string|Date} date - дата
- * @returns {string} ключ месяца, например "2026-09"
+ * Проверка, является ли дата сегодня
+ * @param {string} dateString - Дата для проверки
+ * @returns {boolean} true, если дата сегодня
  */
-export const getMonthKey = (date) => {
-  if (!date) return '';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
+export const isToday = (dateString) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
 };

@@ -1,144 +1,92 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import BalanceCard from '../../components/BalanceCard/BalanceCard';
-import TransactionList from '../../components/TransactionList/TransactionList';
-import Modal from '../../components/Modal/Modal';
-import TransactionForm from '../../components/TransactionForm/TransactionForm';
-import { getTotalIncome, getTotalExpense, getTotalBalance, getRecentTransactions } from '../../services/summaryService';
-import { addIncome, updateIncome, deleteIncome } from '../../services/incomeService';
-import { addExpense, updateExpense, deleteExpense } from '../../services/expenseService';
-import styles from './Dashboard.module.css';
+import React, { useState, useMemo } from "react";
+import { useData } from "../../context/DataContext";
+import BalanceCard from "../../components/BalanceCard/BalanceCard";
+import EmptyState from "../../components/EmptyState/EmptyState";
+import TransactionList from "../../components/TransactionList/TransactionList";
+import Modal from "../../components/Modal/Modal";
+import TransactionForm from "../../components/TransactionForm/TransactionForm";
+import styles from "./Dashboard.module.css";
 
 function Dashboard() {
-  // Состояния для модалки
+  const { incomes, expenses, addTransaction, deleteTransaction } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
 
-  // Ключ обновления — меняем его после CRUD-операций, чтобы пересчитать данные
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Вычисляем балансы
+  const { totalIncome, totalExpense, balance } = useMemo(() => {
+    const income = (incomes || []).reduce(
+      (sum, inc) => sum + (inc.amount || 0),
+      0,
+    );
+    const expense = (expenses || []).reduce(
+      (sum, exp) => sum + (exp.amount || 0),
+      0,
+    );
+    return {
+      totalIncome: income,
+      totalExpense: expense,
+      balance: income - expense,
+    };
+  }, [incomes, expenses]);
 
-  // Пересчитываем данные при каждом изменении refreshKey
-  const totalIncome = getTotalIncome();
-  const totalExpense = getTotalExpense();
-  const balance = getTotalBalance();
-  const recentTransactions = getRecentTransactions(5);
+  // Последние 5 транзакций
+  const recentTransactions = useMemo(() => {
+    const allTransactions = [...(incomes || []), ...(expenses || [])];
+    return allTransactions
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+  }, [incomes, expenses]);
 
-  // Принудительный ре-рендер (на случай, если сервисы не вызвали перерисовку)
-  const refresh = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-  }, []);
+  // Обработчики модалки
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
-  // Открытие модалки для добавления новой операции
-  const handleOpenAdd = () => {
-    setEditData(null);
-    setIsModalOpen(true);
-  };
-
-  // Открытие модалки для редактирования существующей операции
-  const handleOpenEdit = (transaction) => {
-    setEditData(transaction);
-    setIsModalOpen(true);
-  };
-
-  // Закрытие модалки
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditData(null);
-  };
-
-  // Обработка отправки формы (создание или обновление)
+  // Обработчик добавления транзакции
   const handleSubmit = (transactionData) => {
-    if (editData) {
-      // Режим редактирования
-      if (editData.type === 'income') {
-        updateIncome(editData.id, transactionData);
-      } else {
-        updateExpense(editData.id, transactionData);
-      }
-    } else {
-      // Режим создания
-      if (transactionData.type === 'income') {
-        addIncome(transactionData);
-      } else {
-        addExpense(transactionData);
-      }
-    }
-
+    addTransaction(transactionData);
     handleCloseModal();
-    refresh();
   };
 
-  // Удаление операции
+  // Обработчик удаления транзакции
   const handleDelete = (id) => {
-    // Находим операцию, чтобы определить её тип
-    const allTransactions = getRecentTransactions(100);
-    const transaction = allTransactions.find((t) => t.id === id);
-
-    if (!transaction) return;
-
-    const confirmed = window.confirm('Удалить эту операцию?');
-    if (!confirmed) return;
-
-    if (transaction.type === 'income') {
-      deleteIncome(id);
-    } else {
-      deleteExpense(id);
+    // Находим транзакцию, чтобы определить её тип
+    const transaction = [...(incomes || []), ...(expenses || [])].find(
+      (t) => t.id === id,
+    );
+    if (transaction) {
+      deleteTransaction(id, transaction.type);
     }
-
-    refresh();
   };
 
   return (
     <div className={styles.dashboard}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Главная</h1>
-        <button
-          className={styles.addButton}
-          title="Добавить операцию"
-          onClick={handleOpenAdd}
-          type="button"
-        >
-          +
+        <h1 className={styles.title}>Обзор</h1>
+        <button className={styles.addButton} onClick={handleOpenModal}>
+          <span className={styles.addIcon}>+</span>
+          Добавить операцию
         </button>
       </div>
 
       <div className={styles.balanceGrid}>
-        <BalanceCard
-          title="Доходы"
-          amount={totalIncome}
-          color="income"
-        />
-        <BalanceCard
-          title="Расходы"
-          amount={totalExpense}
-          color="expense"
-        />
-        <BalanceCard
-          title="Баланс"
-          amount={balance}
-          color="balance"
-        />
+        <BalanceCard title="Доходы" amount={totalIncome} color="income" />
+        <BalanceCard title="Расходы" amount={totalExpense} color="expense" />
+        <BalanceCard title="Баланс" amount={balance} color="balance" />
       </div>
 
-      <div className={styles.section}>
+      <div className={styles.recentSection}>
         <h2 className={styles.sectionTitle}>Последние операции</h2>
         <TransactionList
           transactions={recentTransactions}
-          onEdit={handleOpenEdit}
           onDelete={handleDelete}
         />
       </div>
 
-      {/* Модальное окно с формой */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editData ? 'Редактировать операцию' : 'Новая операция'}
+        title="Добавить операцию"
       >
-        <TransactionForm
-          editData={editData}
-          onSubmit={handleSubmit}
-          onCancel={handleCloseModal}
-        />
+        <TransactionForm onSubmit={handleSubmit} onCancel={handleCloseModal} />
       </Modal>
     </div>
   );

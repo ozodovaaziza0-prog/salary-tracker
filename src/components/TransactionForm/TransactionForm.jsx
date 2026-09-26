@@ -1,111 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import styles from './TransactionForm.module.css';
+import React, { useState, useEffect } from "react";
+import styles from "./TransactionForm.module.css";
 
-// Fallback-категории (будут заменены на импорт из utils/constants.js в Фазе E)
-const INCOME_CATEGORIES_FALLBACK = [
-  { id: 'salary', label: 'Зарплата' },
-  { id: 'freelance', label: 'Подработка' },
-  { id: 'bonus', label: 'Премия' },
-  { id: 'debt_return', label: 'Возврат долга' },
-  { id: 'deposit_interest', label: 'Проценты по вкладу' },
-  { id: 'gift', label: 'Подарок' },
-  { id: 'other', label: 'Прочее' },
+// Fallback-категории — будут заменены на импорты из констант в фазе E
+const FALLBACK_INCOME_CATEGORIES = [
+  { id: "salary", label: "Зарплата" },
+  { id: "freelance", label: "Подработка" },
+  { id: "bonus", label: "Премия" },
+  { id: "debt_return", label: "Возврат долга" },
+  { id: "deposit_interest", label: "Проценты по вкладу" },
+  { id: "gift", label: "Подарок" },
+  { id: "other", label: "Прочее" },
 ];
 
-const EXPENSE_CATEGORIES_FALLBACK = [
-  { id: 'groceries', label: 'Продукты' },
-  { id: 'utilities', label: 'Коммуналка' },
-  { id: 'rent', label: 'Аренда' },
-  { id: 'subscriptions', label: 'Подписки' },
-  { id: 'transport', label: 'Транспорт' },
-  { id: 'health', label: 'Здоровье' },
-  { id: 'clothing', label: 'Одежда' },
-  { id: 'entertainment', label: 'Развлечения' },
-  { id: 'communication', label: 'Связь' },
-  { id: 'other', label: 'Прочее' },
+const FALLBACK_EXPENSE_CATEGORIES = [
+  { id: "groceries", label: "Продукты" },
+  { id: "utilities", label: "Коммуналка" },
+  { id: "rent", label: "Аренда" },
+  { id: "subscriptions", label: "Подписки" },
+  { id: "transport", label: "Транспорт" },
+  { id: "health", label: "Здоровье" },
+  { id: "clothing", label: "Одежда" },
+  { id: "entertainment", label: "Развлечения" },
+  { id: "communication", label: "Связь" },
+  { id: "other", label: "Прочее" },
 ];
 
 function TransactionForm({ onSubmit, onCancel, editData }) {
-  // Начальное состояние формы
-  const [type, setType] = useState(editData?.type || 'expense');
-  const [category, setCategory] = useState(editData?.category || '');
-  const [amount, setAmount] = useState(editData?.amount?.toString() || '');
+  const [type, setType] = useState(editData?.type || "expense");
+  const [category, setCategory] = useState(editData?.category || "");
+  const [amount, setAmount] = useState(editData?.amount ?? "");
   const [date, setDate] = useState(
-    editData?.date || new Date().toISOString().split('T')[0]
+    editData?.date || new Date().toISOString().split("T")[0],
   );
-  const [comment, setComment] = useState(editData?.comment || '');
+  const [comment, setComment] = useState(editData?.comment || "");
 
-  // Определяем список категорий по типу операции
+  // Получаем категории в зависимости от выбранного типа
   const categories =
-    type === 'income'
-      ? INCOME_CATEGORIES_FALLBACK
-      : EXPENSE_CATEGORIES_FALLBACK;
+    type === "income"
+      ? FALLBACK_INCOME_CATEGORIES
+      : FALLBACK_EXPENSE_CATEGORIES;
 
-  // При смене типа сбрасываем категорию, если она не из нового списка
+  // Сбрасываем категорию при смене типа
   useEffect(() => {
-    const isValid = categories.some((cat) => cat.id === category);
-    if (!isValid) {
-      setCategory(categories[0]?.id || '');
-    }
-  }, [type, category, categories]);
+    setCategory("");
+  }, [type]);
 
   // Обработка отправки формы
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || parsedAmount <= 0) {
-      alert('Введите корректную сумму');
-      return;
-    }
+    if (!category || !amount || !date) return;
 
-    const transaction = {
-      id: editData?.id || null,
+    const transactionData = {
       type,
       category,
-      amount: parsedAmount,
+      amount: Number(amount),
       date,
       comment: comment.trim(),
     };
 
-    onSubmit?.(transaction);
+    onSubmit(transactionData);
   };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       {/* Переключатель типа операции */}
-      <div className={styles.typeSwitcher}>
-        <button
-          type="button"
-          className={`${styles.typeButton} ${
-            type === 'income' ? styles.typeButtonActiveIncome : ''
-          }`}
-          onClick={() => setType('income')}
-        >
-          Доход
-        </button>
-        <button
-          type="button"
-          className={`${styles.typeButton} ${
-            type === 'expense' ? styles.typeButtonActiveExpense : ''
-          }`}
-          onClick={() => setType('expense')}
-        >
-          Расход
-        </button>
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Тип операции</label>
+        <div className={styles.typeSelector}>
+          <button
+            type="button"
+            className={`${styles.typeButton} ${
+              type === "income" ? styles.typeButtonIncomeActive : ""
+            }`}
+            onClick={() => setType("income")}
+          >
+            Доход
+          </button>
+          <button
+            type="button"
+            className={`${styles.typeButton} ${
+              type === "expense" ? styles.typeButtonExpenseActive : ""
+            }`}
+            onClick={() => setType("expense")}
+          >
+            Расход
+          </button>
+        </div>
       </div>
 
-      {/* Категория и сумма в одном ряду */}
-      <div className={styles.fieldRow}>
+      {/* Категория и сумма */}
+      <div className={styles.grid}>
         <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Категория</label>
+          <label className={styles.label}>Категория</label>
           <select
-            className={styles.fieldInput}
+            className={styles.select}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             required
           >
-            {categories.map((cat) => (
+            <option value="">Выберите категорию</option>
+            {(categories || []).map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.label}
               </option>
@@ -114,14 +109,14 @@ function TransactionForm({ onSubmit, onCancel, editData }) {
         </div>
 
         <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Сумма (₽)</label>
+          <label className={styles.label}>Сумма (₽)</label>
           <input
             type="number"
-            className={styles.fieldInput}
+            className={styles.input}
+            placeholder="0"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0"
-            min="0.01"
+            min="0"
             step="0.01"
             required
           />
@@ -130,10 +125,10 @@ function TransactionForm({ onSubmit, onCancel, editData }) {
 
       {/* Дата */}
       <div className={styles.fieldGroup}>
-        <label className={styles.fieldLabel}>Дата</label>
+        <label className={styles.label}>Дата</label>
         <input
           type="date"
-          className={styles.fieldInput}
+          className={styles.input}
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
@@ -142,30 +137,32 @@ function TransactionForm({ onSubmit, onCancel, editData }) {
 
       {/* Комментарий */}
       <div className={styles.fieldGroup}>
-        <label className={styles.fieldLabel}>Комментарий</label>
+        <label className={styles.label}>Комментарий</label>
         <textarea
-          className={styles.fieldTextarea}
+          className={styles.textarea}
+          placeholder="Необязательное описание операции..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Необязательный комментарий..."
-          rows="3"
+          rows={3}
         />
       </div>
 
       {/* Кнопки действий */}
       <div className={styles.actions}>
-        <button
-          type="button"
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          onClick={() => onCancel?.()}
-        >
-          Отмена
-        </button>
+        {onCancel && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={onCancel}
+          >
+            Отмена
+          </button>
+        )}
         <button
           type="submit"
           className={`${styles.button} ${styles.buttonPrimary}`}
         >
-          {editData ? 'Сохранить' : 'Добавить'}
+          {editData ? "Сохранить изменения" : "Добавить операцию"}
         </button>
       </div>
     </form>

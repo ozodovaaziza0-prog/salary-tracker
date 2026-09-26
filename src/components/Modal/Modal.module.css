@@ -1,6 +1,4 @@
-/* Стили модального окна */
-
-/* Overlay — затемнение на весь экран */
+/* Оверлей модального окна */
 .overlay {
   position: fixed;
   top: 0;
@@ -17,7 +15,7 @@
 }
 
 /* Контейнер модального окна */
-.content {
+.modal {
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -25,38 +23,35 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  position: relative;
-  animation: slideUp 0.2s ease;
+  animation: slideUp 0.3s ease;
 }
 
 /* Заголовок модального окна */
 .header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
 }
 
 .title {
   font-size: var(--font-size-xl);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
 /* Кнопка закрытия */
 .closeButton {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
   border-radius: var(--radius-md);
-  background-color: transparent;
   color: var(--color-text-muted);
   font-size: var(--font-size-xl);
   transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .closeButton:hover {
@@ -64,9 +59,18 @@
   color: var(--color-text);
 }
 
-/* Тело модального окна */
-.body {
+/* Контент модального окна */
+.content {
   padding: var(--spacing-lg);
+}
+
+/* Футер модального окна */
+.footer {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
 }
 
 /* Анимации */
@@ -74,6 +78,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -81,24 +86,30 @@
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
     opacity: 0;
+    transform: translateY(20px);
   }
+
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 /* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-  .content {
+@media (max-width: 640px) {
+  .modal {
     max-width: 100%;
-    max-height: 100vh;
-    border-radius: 0;
+    margin: var(--spacing-md);
   }
 
-  .overlay {
-    padding: 0;
+  .header,
+  .content,
+  .footer {
+    padding: var(--spacing-md);
+  }
+
+  .footer {
+    flex-direction: column-reverse;
   }
 }

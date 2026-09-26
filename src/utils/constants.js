@@ -29,29 +29,6 @@ export const TRANSACTION_TYPES = [
   { id: 'expense', label: 'Расход' },
 ];
 
-// Иконки для категорий (используются в списках транзакций)
-export const CATEGORY_ICONS = {
-  // Доходы
-  salary: '💰',
-  freelance: '💼',
-  bonus: '🎁',
-  debt_return: '🤝',
-  deposit_interest: '🏦',
-  gift: '🎀',
-  // Расходы
-  groceries: '🛒',
-  utilities: '💡',
-  rent: '🏠',
-  subscriptions: '📱',
-  transport: '🚗',
-  health: '💊',
-  clothing: '👕',
-  entertainment: '🎬',
-  communication: '📞',
-  // Прочее (общее для обоих типов)
-  other: '📌',
-};
-
 // Ключи для localStorage
 export const STORAGE_KEYS = {
   INCOMES: 'incomes',

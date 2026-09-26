@@ -1,77 +1,97 @@
-// Обёртка над localStorage для безопасной работы с JSON-данными
+/**
+ * Обёртка для работы с localStorage
+ * Предоставляет безопасные методы для чтения, записи и удаления данных
+ */
 
 /**
- * Безопасное чтение значения из localStorage с парсингом JSON.
- * Возвращает null, если ключ не найден или данные повреждены.
- * @param {string} key - ключ в localStorage
- * @returns {any|null} распарсенное значение или null
+ * Получение данных из localStorage
+ * @param {string} key - Ключ для получения данных
+ * @param {*} defaultValue - Значение по умолчанию, если данные не найдены
+ * @returns {*} Распарсенные данные или значение по умолчанию
  */
-export const storageGet = (key) => {
+export const storageGet = (key, defaultValue = null) => {
   try {
-    const raw = localStorage.getItem(key);
-    if (raw === null || raw === undefined) return null;
-    return JSON.parse(raw);
+    const item = localStorage.getItem(key);
+    if (item === null) return defaultValue;
+    return JSON.parse(item);
   } catch (error) {
-    console.warn(`[storage] Не удалось прочитать ключ "${key}":`, error);
-    return null;
+    console.error(`Ошибка при чтении из localStorage (ключ: ${key}):`, error);
+    return defaultValue;
   }
 };
 
 /**
- * Безопасная запись значения в localStorage (сериализация в JSON).
- * @param {string} key - ключ в localStorage
- * @param {any} value - значение (будет сериализовано)
+ * Сохранение данных в localStorage
+ * @param {string} key - Ключ для сохранения данных
+ * @param {*} value - Данные для сохранения (будут сериализованы в JSON)
+ * @returns {boolean} true, если сохранение успешно
  */
 export const storageSet = (key, value) => {
   try {
-    const raw = JSON.stringify(value);
-    localStorage.setItem(key, raw);
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch (error) {
-    console.warn(`[storage] Не удалось записать ключ "${key}":`, error);
+    console.error(`Ошибка при записи в localStorage (ключ: ${key}):`, error);
+    return false;
   }
 };
 
 /**
- * Удаление ключа из localStorage.
- * @param {string} key - ключ в localStorage
+ * Удаление данных из localStorage
+ * @param {string} key - Ключ для удаления
+ * @returns {boolean} true, если удаление успешно
  */
 export const storageRemove = (key) => {
   try {
     localStorage.removeItem(key);
+    return true;
   } catch (error) {
-    console.warn(`[storage] Не удалось удалить ключ "${key}":`, error);
+    console.error(`Ошибка при удалении из localStorage (ключ: ${key}):`, error);
+    return false;
   }
 };
 
 /**
- * Генерация уникального идентификатора (UUID v4).
- * Использует встроенный crypto.randomUUID(), если доступен,
- * иначе — fallback на случайную строку.
- * @returns {string} уникальный ID
+ * Очистка всего localStorage
+ * @returns {boolean} true, если очистка успешна
+ */
+export const storageClear = () => {
+  try {
+    localStorage.clear();
+    return true;
+  } catch (error) {
+    console.error('Ошибка при очистке localStorage:', error);
+    return false;
+  }
+};
+
+/**
+ * Генерация уникального идентификатора (UUID)
+ * @returns {string} Уникальный идентификатор
  */
 export const generateId = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  // Используем crypto.randomUUID() если доступен (современные браузеры)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  // Fallback для сред без crypto.randomUUID
-  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+
+  // Fallback для старых браузеров
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 };
 
 /**
- * Получение массива по ключу. Если данных нет или они не массив — возвращает [].
- * @param {string} key - ключ в localStorage
- * @returns {Array} массив данных
+ * Получение всех ключей из localStorage
+ * @returns {string[]} Массив ключей
  */
-export const storageGetArray = (key) => {
-  const data = storageGet(key);
-  return Array.isArray(data) ? data : [];
-};
-
-/**
- * Сохранение массива по ключу.
- * @param {string} key - ключ в localStorage
- * @param {Array} data - массив данных
- */
-export const storageSetArray = (key, data) => {
-  storageSet(key, Array.isArray(data) ? data : []);
+export const storageKeys = () => {
+  try {
+    return Object.keys(localStorage);
+  } catch (error) {
+    console.error('Ошибка при получении ключей из localStorage:', error);
+    return [];
+  }
 };

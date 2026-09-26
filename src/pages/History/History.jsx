@@ -1,131 +1,112 @@
-import React, { useState, useCallback } from 'react';
-import TransactionList from '../../components/TransactionList/TransactionList';
-import Modal from '../../components/Modal/Modal';
-import TransactionForm from '../../components/TransactionForm/TransactionForm';
-import { getFilteredTransactions } from '../../services/summaryService';
-import { addIncome, updateIncome, deleteIncome } from '../../services/incomeService';
-import { addExpense, updateExpense, deleteExpense } from '../../services/expenseService';
-import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/formatters';
-import styles from './History.module.css';
+import React, { useState, useMemo } from "react";
+import { useData } from "../../context/DataContext";
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from "../../utils/constants";
+import TransactionList from "../../components/TransactionList/TransactionList";
+import Modal from "../../components/Modal/Modal";
+import TransactionForm from "../../components/TransactionForm/TransactionForm";
+import styles from "./History.module.css";
 
 function History() {
-  // Состояния для фильтров
-  const [filterType, setFilterType] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    incomes,
+    expenses,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+  } = useData();
 
-  // Состояния для модалки
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
-  // Ключ обновления — меняем его после CRUD-операций, чтобы пересчитать данные
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Все транзакции
+  const allTransactions = useMemo(() => {
+    return [...(incomes || []), ...(expenses || [])];
+  }, [incomes, expenses]);
 
-  // Получаем отфильтрованные транзакции
-  const transactions = getFilteredTransactions({
-    type: filterType,
-    category: filterCategory,
-    search: searchQuery,
-  });
+  // Отфильтрованные транзакции
+  const filteredTransactions = useMemo(() => {
+    let result = allTransactions;
 
-  // Подсчёт итоговых сумм по отфильтрованным данным
-  const totalIncome = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Фильтрация по типу
+    if (typeFilter !== "all") {
+      result = result.filter((t) => t.type === typeFilter);
+    }
 
-  const totalExpense = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Фильтрация по категории
+    if (categoryFilter !== "all") {
+      result = result.filter((t) => t.category === categoryFilter);
+    }
 
-  // Объединённый список категорий для фильтра
-  const allCategories = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+    // Сортировка по дате (новые первые)
+    return result.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [allTransactions, typeFilter, categoryFilter]);
 
-  // Принудительный ре-рендер
-  const refresh = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
+  // Категории для фильтра (объединяем все категории)
+  const allCategories = useMemo(() => {
+    return [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
   }, []);
 
-  // Открытие модалки для добавления новой операции
-  const handleOpenAdd = () => {
-    setEditData(null);
+  // Обработчики модалки
+  const handleOpenModal = () => {
+    setEditingTransaction(null);
     setIsModalOpen(true);
   };
 
-  // Открытие модалки для редактирования существующей операции
-  const handleOpenEdit = (transaction) => {
-    setEditData(transaction);
-    setIsModalOpen(true);
-  };
-
-  // Закрытие модалки
   const handleCloseModal = () => {
+    setEditingTransaction(null);
     setIsModalOpen(false);
-    setEditData(null);
   };
 
-  // Обработка отправки формы (создание или обновление)
+  // Обработчик редактирования
+  const handleEdit = (transaction) => {
+    setEditingTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  // Обработчик отправки формы
   const handleSubmit = (transactionData) => {
-    if (editData) {
+    if (editingTransaction) {
       // Режим редактирования
-      if (editData.type === 'income') {
-        updateIncome(editData.id, transactionData);
-      } else {
-        updateExpense(editData.id, transactionData);
-      }
+      updateTransaction(editingTransaction.id, {
+        ...transactionData,
+        type: editingTransaction.type,
+      });
     } else {
-      // Режим создания
-      if (transactionData.type === 'income') {
-        addIncome(transactionData);
-      } else {
-        addExpense(transactionData);
-      }
+      // Режим добавления
+      addTransaction(transactionData);
     }
-
     handleCloseModal();
-    refresh();
   };
 
-  // Удаление операции
+  // Обработчик удаления
   const handleDelete = (id) => {
-    // Находим операцию, чтобы определить её тип
-    const transaction = transactions.find((t) => t.id === id);
-
-    if (!transaction) return;
-
-    const confirmed = window.confirm('Удалить эту операцию?');
-    if (!confirmed) return;
-
-    if (transaction.type === 'income') {
-      deleteIncome(id);
-    } else {
-      deleteExpense(id);
+    const transaction = allTransactions.find((t) => t.id === id);
+    if (transaction) {
+      if (window.confirm("Вы уверены, что хотите удалить эту операцию?")) {
+        deleteTransaction(id, transaction.type);
+      }
     }
-
-    refresh();
   };
 
   return (
     <div className={styles.history}>
       <div className={styles.header}>
         <h1 className={styles.title}>История операций</h1>
-        <button
-          className={styles.addButton}
-          onClick={handleOpenAdd}
-          type="button"
-        >
-          <span>+</span>
-          <span>Добавить</span>
+        <button className={styles.addButton} onClick={handleOpenModal}>
+          <span className={styles.addIcon}>+</span>
+          Добавить операцию
         </button>
       </div>
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>Тип</label>
+          <label className={styles.filterLabel}>Тип операции</label>
           <select
             className={styles.filterSelect}
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
           >
             <option value="all">Все</option>
             <option value="income">Доходы</option>
@@ -137,57 +118,38 @@ function History() {
           <label className={styles.filterLabel}>Категория</label>
           <select
             className={styles.filterSelect}
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
           >
             <option value="all">Все категории</option>
-            {allCategories.map((cat) => (
+            {(allCategories || []).map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.label}
               </option>
             ))}
           </select>
         </div>
-
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>Поиск</label>
-          <input
-            type="text"
-            className={styles.filterInput}
-            placeholder="Поиск по комментарию..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
       </div>
 
-      <div className={styles.list}>
+      <div className={styles.listContainer}>
         <TransactionList
-          transactions={transactions}
-          onEdit={handleOpenEdit}
+          transactions={filteredTransactions}
+          onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
 
-      <div className={styles.summary}>
-        <div className={styles.summaryIncome}>
-          Доходы: {formatCurrency(totalIncome)}
-        </div>
-        <div className={styles.summaryExpense}>
-          Расходы: {formatCurrency(totalExpense)}
-        </div>
-      </div>
-
-      {/* Модальное окно с формой */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editData ? 'Редактировать операцию' : 'Новая операция'}
+        title={
+          editingTransaction ? "Редактировать операцию" : "Добавить операцию"
+        }
       >
         <TransactionForm
-          editData={editData}
           onSubmit={handleSubmit}
           onCancel={handleCloseModal}
+          editData={editingTransaction}
         />
       </Modal>
     </div>

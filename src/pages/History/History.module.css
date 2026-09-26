@@ -1,16 +1,15 @@
-/* Стили страницы History (История операций) */
+/* Стили страницы истории */
 .history {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
 }
 
-/* Заголовок страницы */
 .header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-md);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
 }
 
 .title {
@@ -19,35 +18,41 @@
   color: var(--color-text);
 }
 
-/* Кнопка добавления */
 .addButton {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--color-primary);
   color: white;
-  font-size: var(--font-size-md);
+  border-radius: var(--radius-md);
   font-weight: 600;
-  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
-  cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .addButton:hover {
   background-color: var(--color-primary-hover);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-/* Панель фильтров */
+.addButton:active {
+  transform: translateY(0);
+}
+
+.addIcon {
+  font-size: var(--font-size-xl);
+  line-height: 1;
+}
+
+/* Фильтры */
 .filters {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  flex-wrap: wrap;
   background-color: var(--color-surface);
+  padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
@@ -56,98 +61,62 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 150px;
 }
 
 .filterLabel {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
 .filterSelect {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-bg);
+  background-color: var(--color-surface);
   color: var(--color-text);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.filterSelect:hover {
+  border-color: var(--color-primary);
 }
 
 .filterSelect:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
-.filterInput {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  transition: border-color 0.2s ease;
-}
-
-.filterInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-/* Список транзакций */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-/* Итоговая строка */
-.summary {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md);
+/* Контейнер списка транзакций */
+.listContainer {
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
-  font-weight: 600;
-}
-
-.summaryIncome {
-  color: var(--color-income);
-}
-
-.summaryExpense {
-  color: var(--color-expense);
 }
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .addButton {
+    justify-content: center;
   }
 
   .filters {
     flex-direction: column;
-    align-items: stretch;
   }
 
   .filterGroup {
     width: 100%;
-  }
-
-  .filterSelect,
-  .filterInput {
-    width: 100%;
-  }
-
-  .summary {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
   }
 }
