@@ -1,0 +1,170 @@
+/* Стили компонента TransactionList */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Заголовок списка (десктоп) */
+.listHeader {
+  display: grid;
+  grid-template-columns: 120px 1fr 140px 120px 100px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Строка транзакции */
+.row {
+  display: grid;
+  grid-template-columns: 120px 1fr 140px 120px 100px;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.row:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Ячейка даты */
+.date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Ячейка категории с иконкой */
+.category {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.categoryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary-light);
+  font-size: var(--font-size-lg);
+}
+
+/* Ячейка комментария */
+.comment {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ячейка суммы */
+.amount {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  text-align: right;
+}
+
+.amountIncome {
+  color: var(--color-income);
+}
+
+.amountExpense {
+  color: var(--color-expense);
+}
+
+/* Ячейка действий */
+.actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  justify-content: flex-end;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.actionButtonDelete:hover {
+  background-color: var(--color-expense-light);
+  color: var(--color-expense);
+}
+
+/* Адаптивность для планшетов */
+@media (max-width: 900px) {
+  .listHeader {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "category amount"
+      "comment comment"
+      "date actions";
+    gap: var(--spacing-sm);
+  }
+
+  .category {
+    grid-area: category;
+  }
+
+  .amount {
+    grid-area: amount;
+  }
+
+  .comment {
+    grid-area: comment;
+    white-space: normal;
+  }
+
+  .date {
+    grid-area: date;
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+  .row {
+    padding: var(--spacing-sm);
+  }
+
+  .categoryIcon {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-md);
+  }
+}
